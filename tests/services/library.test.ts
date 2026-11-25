@@ -118,6 +118,11 @@ describe("documents", () => {
     expect(await documents.replaceDocumentFile(staff, id, second)).toBe(2);
     const detail = await documents.getDocument(viewer, id);
     expect(detail.versions.map((v) => v.versionNo)).toEqual([2, 1]);
+    const activity = await env.query<{ entity_type: string; action: string; label: string }>(
+      "select a.entity_type, a.action, coalesce(a.after ->> 'title', 'v' || (a.after ->> 'version_no')) as label from audit_log a join documents d on d.id = $1 where a.entity_id = d.id::text or a.after ->> 'document_id' = d.id::text order by a.id",
+      [id],
+    );
+    expect(activity.map((row) => row.label)).toEqual(["Policy", "v1", "v2"]);
     expect((await documents.listDocuments(viewer, { grantId: null })).find((row) => row.id === id)?.fileId).toBe(second);
     await documents.archiveDocument(staff, id);
     expect((await documents.listDocuments(viewer, { grantId: null })).some((row) => row.id === id)).toBe(false);

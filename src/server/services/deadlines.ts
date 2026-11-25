@@ -1,6 +1,6 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { deadlines, grants, users } from "@/db/schema";
+import { deadlines, grants, recentActivity, users } from "@/db/schema";
 import { deadlineState } from "@/lib/dates";
 import { one } from "@/lib/one";
 import { deadlineFilter, deadlineInput } from "@/lib/validation/deadlines";
@@ -42,7 +42,17 @@ export function listDeadlines(identity: Identity, filter: z.input<typeof deadlin
         ),
       )
       .orderBy(asc(deadlines.dueOn), asc(deadlines.title));
-    return rows.map((row) => ({ ...row, state: deadlineState(row, today) }));
+    const edits = await tx
+      .selectDistinctOn([recentActivity.entityId], {
+        entityId: recentActivity.entityId,
+        by: recentActivity.actorName,
+        at: recentActivity.occurredAt,
+      })
+      .from(recentActivity)
+      .where(eq(recentActivity.entityType, "deadlines"))
+      .orderBy(recentActivity.entityId, desc(recentActivity.id));
+    const lastEdits = new Map(edits.map((edit) => [edit.entityId, { by: edit.by, at: edit.at }]));
+    return rows.map((row) => ({ ...row, state: deadlineState(row, today), lastEdit: lastEdits.get(row.id) }));
   });
 }
 

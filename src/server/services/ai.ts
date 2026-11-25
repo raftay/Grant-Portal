@@ -4,7 +4,7 @@ import type { Tx } from "@/db/client";
 import { aiExtractions, aiProposals, deadlines, documents, documentVersions, files, grants } from "@/db/schema";
 import { dollarsToCents } from "@/lib/money";
 import { one } from "@/lib/one";
-import { documentDetails } from "@/lib/validation/documents";
+import { createDocumentInput, documentDetails } from "@/lib/validation/documents";
 import { deadlineType } from "@/lib/validation/deadlines";
 import { awardInput } from "@/lib/validation/grants";
 import { optionalId, text } from "@/lib/validation/common";
@@ -12,6 +12,7 @@ import { extract, isReadable, model, promptVersion } from "../ai/extract";
 import { contractTermsSchema, documentDatesSchema, type ContractTerms, type DocumentDates } from "../ai/schemas";
 import { AppError, notFound } from "../errors";
 import { readObject } from "../storage/storage";
+import { insertDocument } from "./documents";
 import { lockGrant, requireContract } from "./grants";
 import { asMember, asWriter, type Identity } from "./identity";
 import { requireActiveOwner } from "./owners";
@@ -146,11 +147,11 @@ export function getExtraction(identity: Identity, extractionId: string) {
   });
 }
 
-async function claim(tx: Tx, extractionId: string, kind: keyof typeof tasks) {
+async function claim(tx: Tx, extractionId: string, kind?: keyof typeof tasks) {
   const [extraction] = await tx
     .select()
     .from(aiExtractions)
-    .where(and(eq(aiExtractions.id, extractionId), eq(aiExtractions.kind, kind), eq(aiExtractions.status, "proposed")))
+    .where(and(eq(aiExtractions.id, extractionId), kind ? eq(aiExtractions.kind, kind) : undefined, eq(aiExtractions.status, "proposed")))
     .for("update");
   if (!extraction) throw new AppError("conflict", "These suggestions have already been reviewed.");
   return extraction;
@@ -205,10 +206,39 @@ export function confirmDocumentDates(
     if (!document) throw notFound("That document");
     if (document.ownerId !== values.ownerId) await requireActiveOwner(tx, values.ownerId);
     await tx.update(documents).set(values).where(eq(documents.id, target));
-    await settle(tx, identity, id, (row) => {
-      if (row.targetField !== "expiresOn" && row.targetField !== "reviewOn") throw new Error(`Unexpected field ${row.targetField}`);
-      return { final: values[row.targetField], entityId: target };
-    });
+    await settle(tx, identity, id, documentOutcome(values, target));
+  });
+}
+
+const documentOutcome = (values: { expiresOn: string | null; reviewOn: string | null }, entityId: string) =>
+  (row: typeof aiProposals.$inferSelect): Outcome => {
+    if (row.targetField !== "expiresOn" && row.targetField !== "reviewOn") throw new Error(`Unexpected field ${row.targetField}`);
+    return { final: values[row.targetField], entityId };
+  };
+
+const reviewedDocumentInput = z.object({ reviewed, document: createDocumentInput });
+
+export function createReviewedDocument(
+  identity: Identity,
+  extractionId: string,
+  input: z.input<typeof reviewedDocumentInput>,
+): Promise<string> {
+  const id = z.uuid().parse(extractionId);
+  const { document: values } = reviewedDocumentInput.parse(input);
+  return asWriter(identity, async (tx) => {
+    const extraction = await claim(tx, id, "document_dates");
+    if (extraction.fileId !== values.fileId) throw new AppError("invalid", "Those suggestions belong to a different file.");
+    const documentId = await insertDocument(tx, identity, values);
+    await settle(tx, identity, id, documentOutcome(values, documentId));
+    return documentId;
+  });
+}
+
+export function discardExtraction(identity: Identity, extractionId: string): Promise<void> {
+  const id = z.uuid().parse(extractionId);
+  return asWriter(identity, async (tx) => {
+    await claim(tx, id);
+    await settle(tx, identity, id, () => null);
   });
 }
 

@@ -198,6 +198,28 @@ describe("confirming a document", () => {
   });
 });
 
+describe("saving a new document with its review", () => {
+  it("saves both together, once, for the same file only", async () => {
+    const fileId = await upload();
+    const id = await ai.readDocumentDates(staff, fileId);
+    const document = { ...details, grantId: null, fileId, reviewOn: "2030-01-01" };
+    await expect(ai.createReviewedDocument(staff, id, { reviewed: true, document: { ...document, fileId: await upload() } })).rejects.toMatchObject({ code: "invalid" });
+    expect(() => ai.createReviewedDocument(staff, id, { reviewed: false as never, document })).toThrow("reviewed");
+    const documentId = await ai.createReviewedDocument(staff, id, { reviewed: true, document });
+    expect(await ai.getExtraction(staff, id)).toMatchObject({ status: "reviewed", proposals: [{ status: "accepted", appliedEntityId: documentId }] });
+    expect(await documents.getDocument(staff, documentId)).toMatchObject({ expiresOn: "2030-06-30", reviewOn: "2030-01-01" });
+    await expect(ai.createReviewedDocument(staff, id, { reviewed: true, document })).rejects.toMatchObject({ code: "conflict" });
+  });
+
+  it("can be discarded, which rejects every suggestion", async () => {
+    const id = await ai.readDocumentDates(staff, await upload());
+    await expect(ai.discardExtraction({ userId: i.viewer }, id)).rejects.toMatchObject({ code: "forbidden" });
+    await ai.discardExtraction(staff, id);
+    expect((await ai.getExtraction(staff, id)).proposals.map((p) => p.status)).toEqual(["rejected"]);
+    await expect(ai.discardExtraction(staff, id)).rejects.toMatchObject({ code: "conflict" });
+  });
+});
+
 describe("contracts", () => {
   const award = { funderName: "Evergreen Foundation", awardNumber: "EV-9", awardCents: 15_000_010, startsOn: "2026-01-01", endsOn: "2026-12-30" };
   const row = { groupNo: 1, title: "Quarterly report", type: "report" as const, dueOn: "2026-11-30", ownerId: i.staff, reminderDays: 7 };

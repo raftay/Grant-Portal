@@ -20,15 +20,18 @@ async function requireReadyFile(tx: Tx, fileId: string, userId: string): Promise
   if (!file) throw new AppError("invalid", "Upload the file before saving the document.");
 }
 
+export async function insertDocument(tx: Tx, identity: Identity, input: z.output<typeof createDocumentInput>): Promise<string> {
+  const { fileId, ...values } = input;
+  await requireReadyFile(tx, fileId, identity.userId);
+  await requireActiveOwner(tx, values.ownerId);
+  const { id } = one(await tx.insert(documents).values(values).returning({ id: documents.id }));
+  await tx.insert(documentVersions).values({ documentId: id, versionNo: 1, fileId });
+  return id;
+}
+
 export function createDocument(identity: Identity, input: z.input<typeof createDocumentInput>): Promise<string> {
-  const { fileId, ...values } = createDocumentInput.parse(input);
-  return asWriter(identity, async (tx) => {
-    await requireReadyFile(tx, fileId, identity.userId);
-    await requireActiveOwner(tx, values.ownerId);
-    const [document] = await tx.insert(documents).values(values).returning({ id: documents.id });
-    await tx.insert(documentVersions).values({ documentId: document!.id, versionNo: 1, fileId });
-    return document!.id;
-  });
+  const values = createDocumentInput.parse(input);
+  return asWriter(identity, (tx) => insertDocument(tx, identity, values));
 }
 
 export function replaceDocumentFile(identity: Identity, documentId: string, fileId: string): Promise<number> {

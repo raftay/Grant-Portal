@@ -166,11 +166,22 @@ describe("overview", () => {
     ]);
   });
 
+  it("shows a deadline only inside its own reminder window", async () => {
+    const id = await deadlines.createDeadline(staff, { ...deadline, title: "Window", dueOn: addDays(today, 15), reminderDays: 14 });
+    const shown = async () => (await overview.listAttention(viewer)).some((row) => row.id === id);
+    expect(await shown()).toBe(false);
+    await deadlines.updateDeadline(staff, id, { ...deadline, title: "Window", dueOn: addDays(today, 15), reminderDays: 15 });
+    expect(await shown()).toBe(true);
+    await deadlines.updateDeadline(staff, id, { ...deadline, title: "Window", dueOn: addDays(today, 15), status: "waived" });
+    const [edited] = (await deadlines.listDeadlines(viewer, { status: "waived" })).filter((row) => row.id === id);
+    expect(edited?.lastEdit).toMatchObject({ by: "Sam" });
+  });
+
   it("summarises without inventing spending", async () => {
     expect(await overview.getSummary(viewer)).toMatchObject({
       activeGrants: 3,
       awardedCents: 100_000 + 50_000 + 12_345_678,
-      deadlinesWithin30Days: 2,
+      deadlinesWithin30Days: 1,
       spending: { available: false },
     });
   });

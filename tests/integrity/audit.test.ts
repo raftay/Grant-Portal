@@ -124,3 +124,19 @@ describe("actor stamping", () => {
     });
   });
 });
+
+describe("recent activity for documents", () => {
+  it("shows a new document once and a replacement as a replacement", async () => {
+    await asUser(i.staff, async (c) => {
+      const last = (await c.query("select max(id) id from recent_activity")).rows[0].id;
+      const { rows } = await c.query("insert into documents (title, category) values ('New', 'policy') returning id");
+      await c.query("insert into document_versions (document_id, version_no, file_id) values ($1, 1, $2)", [rows[0].id, i.fileSpare]);
+      await c.query("insert into document_versions (document_id, version_no, file_id) values ($1, 2, $2)", [rows[0].id, i.filePending]);
+      const seen = await c.query("select entity_type, label from recent_activity where id > $1 order by id", [last]);
+      expect(seen.rows).toEqual([
+        { entity_type: "documents", label: "New" },
+        { entity_type: "document_versions", label: "New" },
+      ]);
+    });
+  });
+});

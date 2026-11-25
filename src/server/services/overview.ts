@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, isNull, lt, lte, or, sum } from "drizzle-orm";
+import { and, asc, between, count, desc, eq, inArray, isNull, lt, lte, or, sql, sum } from "drizzle-orm";
 import { z } from "zod";
 import { auditLog, deadlines, documents, emailMessages, grants, recentActivity, users } from "@/db/schema";
 import { addDays, deadlineState, documentState } from "@/lib/dates";
@@ -37,7 +37,7 @@ export function listAttention(identity: Identity) {
       })
       .from(deadlines)
       .leftJoin(users, eq(users.id, deadlines.ownerId))
-      .where(and(inArray(deadlines.status, openStatuses), lte(deadlines.dueOn, horizon)));
+      .where(and(inArray(deadlines.status, openStatuses), sql`${deadlines.dueOn} - ${deadlines.reminderDays} <= ${today}::date`));
     const items = [
       ...documentRows.map((row) => {
         const state = documentState(row, today);
@@ -69,7 +69,7 @@ export function getSummary(identity: Identity) {
       await tx
         .select({ n: count() })
         .from(deadlines)
-        .where(and(inArray(deadlines.status, openStatuses), lte(deadlines.dueOn, addDays(today, 30)))),
+        .where(and(inArray(deadlines.status, openStatuses), between(deadlines.dueOn, today, addDays(today, 30)))),
     );
     return { activeGrants: active.n, awardedCents: active.n === 0 ? 0 : active.cents, deadlinesWithin30Days: upcoming.n, spending };
   });

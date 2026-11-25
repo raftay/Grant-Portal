@@ -47,10 +47,12 @@ Only the uploader can finish an upload or attach the file to a document. Payroll
 | `deadlines` | `listDeadlines`, `createDeadline`, `updateDeadline` |
 | `overview` | `listAttention`, `getSummary`, `listActivity`; admins: `listAudit`, `listAccessChanges`, `listEmails` |
 | `alerts` | `runAlertsNow` (admins) |
-| `ai` | `readDocumentDates`, `readContract`, `getExtraction`, `confirmDocumentDates`, `confirmContract` |
+| `ai` | `readDocumentDates`, `readContract`, `getExtraction`, `createReviewedDocument`, `confirmDocumentDates`, `confirmContract`, `discardExtraction` |
 | `documents` | `createDocument`, `replaceDocumentFile`, `updateDocument`, `archiveDocument`, `listDocuments`, `getDocument` |
 
 A document is expired or overdue from the day after its date, and due soon from 30 days before it, in the organisation's time zone.
+
+Needs attention lists documents from 30 days before their date, and deadlines once inside their own reminder window.
 
 Spent and remaining are returned as "not available until Phase 2", never as zero.
 
