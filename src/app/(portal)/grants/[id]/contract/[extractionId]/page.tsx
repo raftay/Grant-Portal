@@ -11,6 +11,7 @@ import { Page } from "@/components/shell/page";
 import { centsToInput } from "@/lib/format";
 import { deadlineTypeLabels, reminderChoices } from "@/lib/labels";
 import { choicesFrom, ownerChoices } from "@/server/choices";
+import { FilePreview } from "@/components/file-preview";
 import { found, pageContext, requireId } from "@/server/page";
 import { getExtraction } from "@/server/services/ai";
 import { getGrant } from "@/server/services/grants";
@@ -59,7 +60,7 @@ export default async function ContractReviewPage({ params }: { params: Promise<{
     <Page crumb="Grants / Contract review" eyebrow={`${grant.name} · Contract upload`} title="Review extracted contract details" lead="Check the source document before confirming any suggested values.">
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,500fr)_minmax(0,636fr)]">
         <Panel title={grant.contract ? grant.contract.fileName : "Contract"}>
-          <iframe src={`/api/files/${extraction.fileId}?mode=view`} title="Contract" className="h-[60dvh] w-full rounded-lg border bg-muted" />
+          <FilePreview fileId={extraction.fileId} title="Contract" className="h-[60dvh]" />
           <h3 className="mt-5 mb-2 font-semibold">Where each value came from</h3>
           <ul className="flex flex-col gap-2">
             {quotes.map((row) => (

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ToneBadge, type Tone } from "@/components/badges";
-import { FileLinks } from "@/components/link-button";
+import { FileLinks } from "@/components/file-links";
 import { Empty } from "@/components/panels";
 import { todayIn, type DocumentState } from "@/lib/dates";
 import { formatBytes, formatDay } from "@/lib/format";

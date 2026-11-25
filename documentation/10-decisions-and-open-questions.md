@@ -15,6 +15,8 @@
 | Spending figures are Phase 2 placeholders; Receipts, Payroll and Budget are hidden | The scope requires placeholders until Phase 2 |
 | Contract review shows the real PDF beside the AI quotes | Highlighting inside a PDF is unreliable |
 | Text is at least 12px and grey text is slightly darker than in the design | Readability and AA contrast |
+| A separate in-browser demo on GitHub Pages | Pages cannot run the server; this shows the real screens and access rules without any accounts |
+| AI is simulated in the demo only | A public page cannot hold an API key. The portal itself still uses the real API |
 | Four seeded people | Leaves one seat to demonstrate an invitation |
 | No fallbacks, retries or backup paths; failures throw | Project rule |
 | Items without an active owner get no email | The scope names the owner as the recipient; they still appear under Needs attention |

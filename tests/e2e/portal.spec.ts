@@ -21,7 +21,7 @@ async function as(browser: Browser, person: string, work: (page: Page) => Promis
   await context.close();
 }
 
-const pdf = (name: string, text: string) => ({ name, mimeType: "application/pdf", buffer: makePdf(name, [[text]]) });
+const pdf = (name: string, text: string) => ({ name, mimeType: "application/pdf", buffer: Buffer.from(makePdf(name, [[text]])) });
 
 async function openGrant(page: Page, name: string): Promise<void> {
   await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name }).click();

@@ -24,7 +24,10 @@
     "storage:create": "tsx --env-file-if-exists=.env.local scripts/create-bucket.ts",
     "db:seed": "tsx --env-file-if-exists=.env.local scripts/seed.ts",
     "db:reset": "tsx --env-file-if-exists=.env.local scripts/reset.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "demo:build": "vite build --config demo/vite.config.ts",
+    "demo:preview": "vite preview --config demo/vite.config.ts",
+    "test:demo": "playwright test --config playwright.demo.config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.14.0",
@@ -45,6 +48,8 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.1",
+    "@electric-sql/pglite": "0.6.0",
+    "@noble/hashes": "2.4.0",
     "@playwright/test": "1.65.1",
     "@tailwindcss/postcss": "4.3.5",
     "@types/node": "24.19.4",
@@ -57,6 +62,7 @@
     "tailwindcss": "4.3.5",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
+    "vite": "8.3.8",
     "vitest": "5.1.2"
   }
 }

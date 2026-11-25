@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ToneBadge } from "@/components/badges";
-import { FileLinks, LinkButton } from "@/components/link-button";
+import { FileLinks } from "@/components/file-links";
+import { LinkButton } from "@/components/link-button";
 import { Empty, Panel, PhaseTwoStat, Stat } from "@/components/panels";
 import { grantTabs, Page } from "@/components/shell/page";
 import { Button } from "@/components/ui/button";

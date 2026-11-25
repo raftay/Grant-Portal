@@ -27,9 +27,10 @@ Needs Node 22.12+, 24 or 26+, and Docker. CI uses Node 24.
 | [05-frontend-phase-1.md](05-frontend-phase-1.md) | Screens, design rules, loader |
 | [06-security.md](06-security.md) | Controls, where they live, how they are tested |
 | [07-setup-and-deployment.md](07-setup-and-deployment.md) | Environment variables, storage, email, deploys |
+| [08-testing-and-acceptance.md](08-testing-and-acceptance.md) | Test suites and the Phase 1 checklist |
+| [09-admin-guide.md](09-admin-guide.md) | Short guide for admins |
 | [10-decisions-and-open-questions.md](10-decisions-and-open-questions.md) | Decisions and questions for the client |
-
-Numbers 08 and 09 (acceptance checklist, admin guide) arrive with the final step.
+| [11-demo.md](11-demo.md) | The public in-browser demo and its accounts |
 
 ## Rule
 

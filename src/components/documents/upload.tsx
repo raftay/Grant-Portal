@@ -9,6 +9,7 @@ import { ActionForm } from "@/components/forms/action-form";
 import { CheckField, SelectField, TextField, type Choice } from "@/components/forms/fields";
 import { PaperLoader } from "@/components/paper-loader";
 import { Notice, SensitiveNotice } from "@/components/panels";
+import { sendFile } from "@/lib/send-file";
 import { formatBytes } from "@/lib/format";
 import { fileTypeLabels } from "@/lib/labels";
 import { fileTypes, type FileType } from "@/lib/validation/files";
@@ -16,22 +17,10 @@ import { fileTypes, type FileType } from "@/lib/validation/files";
 const readable = ["application/pdf", "image/png", "image/jpeg"];
 const accept = Object.keys(fileTypes).join(",");
 
-function send(url: string, headers: Record<string, string>, file: File, onProgress: (share: number) => void): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.open("PUT", url);
-    for (const [name, value] of Object.entries(headers)) request.setRequestHeader(name, value);
-    request.upload.onprogress = (event) => event.lengthComputable && onProgress(event.loaded / event.total);
-    request.onload = () => (request.status === 200 ? resolve() : reject(new Error(`Storage refused the upload (${request.status}).`)));
-    request.onerror = () => reject(new Error("The upload did not reach storage."));
-    request.send(file);
-  });
-}
-
 async function uploadFile(file: File, onProgress: (share: number) => void): Promise<string> {
   const started = await startUpload({ name: file.name, mimeType: file.type as FileType, sizeBytes: file.size });
   if (!started.ok) throw new Error(started.message);
-  await send(started.value.url, started.value.headers, file, onProgress);
+  await sendFile(started.value.url, started.value.headers, file, onProgress);
   const finished = await finishUpload(started.value.fileId);
   if (!finished.ok) throw new Error(finished.message);
   return started.value.fileId;

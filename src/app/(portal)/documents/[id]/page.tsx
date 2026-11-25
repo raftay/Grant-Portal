@@ -5,12 +5,13 @@ import { ReplaceFile } from "@/components/documents/upload";
 import { ActionForm } from "@/components/forms/action-form";
 import { SelectField, TextAreaField, TextField } from "@/components/forms/fields";
 import { ActionButton } from "@/components/forms/quick";
-import { FileLinks } from "@/components/link-button";
+import { FileLinks } from "@/components/file-links";
 import { Panel } from "@/components/panels";
 import { Page } from "@/components/shell/page";
 import { formatBytes, formatMoment } from "@/lib/format";
 import { categoryLabels, fileTypeLabels } from "@/lib/labels";
 import { choicesFrom, grantCategories, organizationCategories, ownerChoices } from "@/server/choices";
+import { FilePreview } from "@/components/file-preview";
 import { found, pageContext, requireId } from "@/server/page";
 import { getDocument } from "@/server/services/documents";
 import { getOrganization } from "@/server/services/organization";
@@ -95,7 +96,7 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
       </div>
       {current && ["application/pdf", "image/png", "image/jpeg"].includes(current.mimeType) && (
         <Panel title="Preview">
-          <iframe src={`/api/files/${current.fileId}?mode=view`} title={`Preview of ${document.title}`} className="h-[70dvh] w-full rounded-lg border bg-muted" />
+          <FilePreview fileId={current.fileId} title={`Preview of ${document.title}`} className="h-[70dvh]" />
         </Panel>
       )}
     </Page>

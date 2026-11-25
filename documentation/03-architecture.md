@@ -44,7 +44,7 @@ flowchart LR
   A -->|vercel deploy --prod| P
 ```
 
-Status: Phase 1 is built and runs locally. Nothing has been deployed yet.
+Status: Phase 1 is built and runs locally. The portal itself is not deployed. A browser-only copy is published separately: see [11-demo.md](11-demo.md).
 
 ## Why GitHub Pages is not the host
 
