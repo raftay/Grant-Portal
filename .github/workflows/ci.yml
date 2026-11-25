@@ -1,0 +1,29 @@
+name: ci
+on:
+  pull_request:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: owner
+          POSTGRES_PASSWORD: owner
+          POSTGRES_DB: grant_portal
+        ports:
+          - 54329:5432
+        options: --health-cmd "pg_isready -U owner -d grant_portal" --health-interval 2s --health-timeout 3s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npm run docs:uml && git diff --exit-code documentation
