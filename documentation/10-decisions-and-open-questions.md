@@ -11,7 +11,11 @@
 | Budgets are versioned; confirmed receipts and posted payroll are voided and re-entered | Reported numbers keep their history |
 | One reminder per deadline, set on the deadline | Matches the design; replaces a fixed series of reminders |
 | `recent_activity` view | Everyone sees activity on the home page while the full log stays with admins |
-| The design was read from a small public preview | Detail is approximate until full-size screens are available |
+| Screens follow the Figma design read through its connector; the images are not kept here | Owner's request |
+| Spending figures are Phase 2 placeholders; Receipts, Payroll and Budget are hidden | The scope requires placeholders until Phase 2 |
+| Contract review shows the real PDF beside the AI quotes | Highlighting inside a PDF is unreliable |
+| Text is at least 12px and grey text is slightly darker than in the design | Readability and AA contrast |
+| Four seeded people | Leaves one seat to demonstrate an invitation |
 | No fallbacks, retries or backup paths; failures throw | Project rule |
 | Items without an active owner get no email | The scope names the owner as the recipient; they still appear under Needs attention |
 | AI reading of a contract works on an existing grant | Matches the design; pre-filling a new grant was dropped |

@@ -13,6 +13,8 @@
 | `APP_URL` | Vercel | Base address used in emails |
 | `CRON_SECRET` | Vercel | At least 32 random characters; Vercel Cron sends it |
 | `ANTHROPIC_API_KEY` | Vercel, local | AI reading. Set a spend limit on the account |
+| `SAMPLE_DATA` | Vercel | `true` shows the demo labels |
+| `SEED_PASSWORD` | Local shell | Password for the seeded people, at least 12 characters |
 | `EMAIL_MODE` | Vercel | `resend` to send, `outbox` to store for the demo |
 | `EMAIL_FROM` | Vercel | Sender on a verified domain |
 | `RESEND_API_KEY` | Vercel | Required when `EMAIL_MODE` is `resend` |

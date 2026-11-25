@@ -6,6 +6,7 @@ const schema = z
     APP_URL: z.url(),
     EMAIL_MODE: z.enum(["resend", "outbox"]),
     EMAIL_FROM: z.string().min(3),
+    SAMPLE_DATA: z.enum(["true", "false"]),
     CRON_SECRET: z.string().min(32),
     ANTHROPIC_API_KEY: z.string().min(1),
     RESEND_API_KEY: z.string().optional(),

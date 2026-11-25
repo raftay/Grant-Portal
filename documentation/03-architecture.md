@@ -44,7 +44,7 @@ flowchart LR
   A -->|vercel deploy --prod| P
 ```
 
-Status: the database and the Phase 1 backend exist. Screens are designed but not built yet.
+Status: Phase 1 is built and runs locally. Nothing has been deployed yet.
 
 ## Why GitHub Pages is not the host
 
@@ -87,7 +87,7 @@ Identity uses `set_config(..., true)`, which lasts for one transaction, so it is
 
 | Job | Tool | State |
 |---|---|---|
-| App | Next.js, TypeScript, Tailwind, shadcn/ui | Shell installed; shadcn/ui pending |
+| App | Next.js, TypeScript, Tailwind, shadcn/ui | Built |
 | Database | Neon Postgres, Drizzle, `pg` | Built; Neon project pending |
 | Sign-in | Auth.js, pinned to 5.0.0-beta.32 | Built |
 | Files | Cloudflare R2 | Built; tested on an S3-compatible server, R2 account pending |

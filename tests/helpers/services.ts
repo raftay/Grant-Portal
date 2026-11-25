@@ -24,6 +24,7 @@ export async function prepareServices(overrides: Record<string, string> = {}): P
     AUTH_SECRET: "test-secret-test-secret-test-secret-0",
     AUTH_TRUST_HOST: "true",
     APP_URL: "https://portal.example.org",
+    SAMPLE_DATA: "true",
     CRON_SECRET: "test-cron-secret-test-cron-secret-00",
     ANTHROPIC_API_KEY: "test-key",
     EMAIL_MODE: "outbox",

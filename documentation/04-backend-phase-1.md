@@ -1,6 +1,6 @@
 # Backend, Phase 1
 
-Complete for Phase 1. Screens and the server actions that call these services come next.
+Complete for Phase 1. Server actions in `src/app/actions` call these services.
 
 ## Request pattern
 

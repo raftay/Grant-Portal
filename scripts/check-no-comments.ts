@@ -1,12 +1,12 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { basename, extname } from "node:path";
 import ts from "typescript";
 
 type Finding = { file: string; line: number; text: string };
 
 const listed = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { encoding: "utf8" });
-const tracked = listed.split("\n").filter((file) => file && !file.startsWith("documentation/"));
+const tracked = listed.split("\n").filter((file) => file && existsSync(file) && !file.startsWith("documentation/"));
 const findings: Finding[] = [];
 
 function report(file: string, source: string, position: number, text: string): void {

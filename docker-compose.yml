@@ -13,8 +13,8 @@ services:
       timeout: 3s
       retries: 30
   storage:
-    image: versity/versitygw:v1.0.20
-    command: ["--access", "local-access", "--secret", "local-secret-key", "--port", ":7070", "--region", "auto", "--health", "/health", "posix", "/data"]
+    image: versity/versitygw:v1.4.0
+    command: ["--access", "local-access", "--secret", "local-secret-key", "--port", ":7070", "--region", "auto", "--cors-allow-origin", "http://localhost:3000", "--health", "/health", "posix", "/data"]
     tmpfs:
       - /data
     ports:
