@@ -12,3 +12,10 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+  storage:
+    image: versity/versitygw:v1.0.20
+    command: ["--access", "local-access", "--secret", "local-secret-key", "--port", ":7070", "--region", "auto", "--health", "/health", "posix", "/data"]
+    tmpfs:
+      - /data
+    ports:
+      - "127.0.0.1:57070:7070"

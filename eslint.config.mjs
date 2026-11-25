@@ -7,11 +7,11 @@ const config = [
   ...typescript,
   {
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/server/auth/**", "src/server/jobs/**"],
+    ignores: ["src/server/auth/**", "src/server/jobs/**", "src/server/email/**"],
     rules: {
       "no-restricted-imports": [
         "error",
-        { patterns: [{ group: ["**/db/system"], message: "Only auth and jobs may use the system connection." }] },
+        { patterns: [{ group: ["**/db/system"], message: "Only auth, email and jobs may use the system connection." }] },
       ],
     },
   },

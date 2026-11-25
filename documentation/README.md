@@ -8,7 +8,7 @@ Needs Node 22.12+, 24 or 26+, and Docker. CI uses Node 24.
 
 1. `npm ci`
 2. Copy `.env.example` to `.env.local`
-3. `npm run db:up`
+3. `npm run db:up` (Postgres and an S3-compatible store)
 4. `npm run db:roles`, then `npm run db:migrate`
 5. `npm run dev`
 
@@ -21,9 +21,12 @@ Needs Node 22.12+, 24 or 26+, and Docker. CI uses Node 24.
 | [01-database-design.md](01-database-design.md) | Tables, access rules, enforced rules |
 | [02-database-uml.md](02-database-uml.md) | UML class diagrams, generated |
 | [03-architecture.md](03-architecture.md) | System diagram, request flow, connections |
+| [04-backend-phase-1.md](04-backend-phase-1.md) | Request pattern, sign-in, files, services |
+| [06-security.md](06-security.md) | Controls, where they live, how they are tested |
+| [07-setup-and-deployment.md](07-setup-and-deployment.md) | Environment variables, storage, email, deploys |
 | [10-decisions-and-open-questions.md](10-decisions-and-open-questions.md) | Decisions and questions for the client |
 
-Numbers 04 to 09 (backend, frontend, security, deployment, testing, admin guide) arrive with the steps they describe.
+Numbers 05, 08 and 09 (frontend, acceptance checklist, admin guide) arrive with the steps they describe.
 
 ## Rule
 
