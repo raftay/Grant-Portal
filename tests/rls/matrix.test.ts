@@ -98,7 +98,7 @@ const rules: Rule[] = [
   write("email_messages", `delete from email_messages`, none),
   read("notifications", ["adminPay", "admin", "staff"], byId(i.notification)),
   read("notifications", admins, byId(i.notificationAdmin)),
-  write("notifications", `update notifications set milestone = '7d'`, none),
+  write("notifications", `update notifications set milestone = 'overdue'`, none),
   write("notifications", `delete from notifications`, none),
 
   read("ai_extractions", writers, byId(i.extraction)),
@@ -194,6 +194,7 @@ const rules: Rule[] = [
 
   read("category_balances", members),
   read("grant_balances", members),
+  read("recent_activity", members),
 ];
 
 describe.each(Object.keys(people) as Person[])("as %s", (person) => {

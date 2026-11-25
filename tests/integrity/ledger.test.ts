@@ -202,6 +202,7 @@ describe("constraints", () => {
     ["insert into organization_profile (id, legal_name) values (2, 'x')", "organization_profile_singleton"],
     ["insert into documents (title, category) values ('x', 'executed_contract')", "documents_contract_has_grant"],
     [`update deadlines set status = 'completed' where id = '${i.deadline}'`, "deadlines_completed"],
+    [`update deadlines set reminder_days = 0 where id = '${i.deadline}'`, "deadlines_reminder"],
     [`update grants set ends_on = '2025-01-01' where id = '${i.grantA}'`, "grants_period"],
     [`update ai_proposals set status = 'accepted' where id = '${i.proposal}'`, "ai_proposals_reviewed"],
     ["insert into users (name, email) values ('x', 'ADA@example.org')", "users_email_lower_key"],

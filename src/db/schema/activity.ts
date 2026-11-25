@@ -59,7 +59,7 @@ export const notifications = pgTable(
       sql`(${t.kind} = 'deadline' and ${t.deadlineId} is not null and ${t.documentId} is null)
         or (${t.kind} <> 'deadline' and ${t.documentId} is not null and ${t.deadlineId} is null)`,
     ),
-    check("notifications_milestone", sql`${t.milestone} in ('30d', '14d', '7d', '1d', 'overdue')`),
+    check("notifications_milestone", sql`${t.milestone} in ('30d', 'reminder', 'overdue')`),
   ],
 );
 

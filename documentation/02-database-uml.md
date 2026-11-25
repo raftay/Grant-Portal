@@ -218,6 +218,7 @@ classDiagram
     +date ends_on
     +uuid owner_id?
     +grant_status status
+    +text purpose?
     +text terms_text?
     +integer sort_order
     +uuid created_by?
@@ -257,6 +258,7 @@ classDiagram
     +deadline_status status
     +timestamptz completed_at?
     +uuid completed_by?
+    +integer reminder_days
     +deadline_origin origin
     +uuid created_by?
     +timestamptz created_at

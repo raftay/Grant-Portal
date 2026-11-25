@@ -79,6 +79,7 @@ export const grants = pgTable(
     endsOn: day("ends_on").notNull(),
     ownerId: uuid("owner_id").references(() => users.id),
     status: grantStatus("status").notNull().default("draft"),
+    purpose: text("purpose"),
     termsText: text("terms_text"),
     sortOrder: integer("sort_order").notNull().default(0),
     createdBy: uuid("created_by").references(() => users.id),
@@ -194,6 +195,7 @@ export const deadlines = pgTable(
     status: deadlineStatus("status").notNull().default("open"),
     completedAt: moment("completed_at"),
     completedBy: uuid("completed_by").references(() => users.id),
+    reminderDays: integer("reminder_days").notNull().default(7),
     origin: deadlineOrigin("origin").notNull().default("manual"),
     createdBy: uuid("created_by").references(() => users.id),
     ...timestamps(),
@@ -201,6 +203,7 @@ export const deadlines = pgTable(
   (t) => [
     index("deadlines_grant_idx").on(t.grantId),
     index("deadlines_due_idx").on(t.status, t.dueOn),
+    check("deadlines_reminder", sql`${t.reminderDays} between 1 and 90`),
     check("deadlines_completed", sql`(${t.status} = 'completed') = (${t.completedAt} is not null)`),
   ],
 );

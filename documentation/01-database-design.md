@@ -23,7 +23,7 @@ Covers the whole project. Phase 2 tables exist now so that Phase 2 adds screens 
 | | `files` | One row per stored object; 15 MB limit; pending until verified |
 | | `documents` | No grant means organisation document. One live executed contract per grant |
 | | `document_versions` | Replacing a file adds a version; the highest number is current |
-| Grants | `grants`, `grant_contacts`, `grant_links`, `deadlines` | Links must be https. A deadline is completed exactly when it has a completion time |
+| Grants | `grants`, `grant_contacts`, `grant_links`, `deadlines` | Links must be https. A deadline is completed exactly when it has a completion time, and holds its own reminder lead time (`reminder_days`, 1 to 90, default 7). `grants.purpose` is the short description shown on the overview |
 | Activity | `notifications` | Unique `dedupe_key` stops repeat alerts |
 | | `email_messages` | Send log; body kept only in demo outbox mode |
 | | `ai_extractions`, `ai_proposals` | A proposal cannot leave pending without a reviewer, and is locked after review |
@@ -35,7 +35,7 @@ Covers the whole project. Phase 2 tables exist now so that Phase 2 adds screens 
 | | `payroll_runs`, `payroll_entries`, `payroll_allocations` | Splits must total 100% and the exact cost when posted |
 | | `warnings` | Flags only; nothing depends on them |
 
-`category_balances` and `grant_balances` are views over approved budgets, confirmed receipts and posted payroll.
+`category_balances` and `grant_balances` are views over approved budgets, confirmed receipts and posted payroll. `recent_activity` is a restricted view over the audit log for the home page.
 
 Composite foreign keys on category and grant make it impossible to charge one grant's category to another grant. A payroll or split line with neither grant nor category means "not grant-funded".
 
@@ -54,6 +54,7 @@ Enforced by Row Level Security on all 32 tables. A signed-out, unknown, invited 
 | Employees and payroll | with flag | with flag | read with flag | The flag is required for every role |
 | Balances | read | read | read | Totals only, no payroll rows |
 | Audit log | read | none | none | Payroll entries need the flag |
+| Recent activity | read | read | read | Who, what and when only. No values beyond the record's name; no payroll, people, files or AI |
 | Notifications | read all | own | own | Written by `app_system` |
 | Email log | read | none | none | Written by `app_system` |
 

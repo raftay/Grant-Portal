@@ -72,6 +72,28 @@ describe("audit log", () => {
   });
 });
 
+describe("recent activity", () => {
+  it("gives members the actor, action and label without values", async () => {
+    await asUser(i.staff, async (c) => {
+      await c.query("update documents set title = 'W-9 form' where id = $1", [i.document]);
+      const { rows, fields } = await c.query("select * from recent_activity order by id desc limit 1");
+      expect(rows[0]).toMatchObject({ actor_name: "Sam", action: "update", entity_type: "documents", label: "W-9 form" });
+      expect(fields.map((field) => field.name)).toEqual([
+        "id", "occurred_at", "actor_id", "actor_name", "action", "entity_type", "entity_id", "grant_id", "label",
+      ]);
+    });
+  });
+
+  it("leaves out payroll, people, files, AI and credentials", async () => {
+    const { rows } = await asUser(i.viewer, (c) => c.query("select distinct entity_type from recent_activity"));
+    const types = rows.map((row) => row.entity_type);
+    expect(types).toContain("grants");
+    for (const hidden of ["employees", "payroll_runs", "payroll_entries", "imports", "import_rows", "users", "user_credentials", "files", "ai_extractions", "ai_proposals", "warnings"]) {
+      expect(types).not.toContain(hidden);
+    }
+  });
+});
+
 describe("actor stamping", () => {
   it("overrides a spoofed creator and reviewer", async () => {
     await asUser(i.staff, async (c) => {
