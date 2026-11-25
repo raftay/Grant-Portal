@@ -4,7 +4,7 @@ import { z } from "zod";
 import { files } from "@/db/schema";
 import { createUploadInput, fileTypes, type FileType } from "@/lib/validation/files";
 import { AppError, notFound } from "../errors";
-import { describeObject, readObject, removeObject, signDownload, signUpload, writeObject } from "../storage/storage";
+import { objectSize, readObject, removeObject, signDownload, signUpload, writeObject } from "../storage/storage";
 import { asMember, asWriter, type Identity } from "./identity";
 
 const signatures: Record<FileType, number[]> = {
@@ -43,12 +43,11 @@ export async function finalizeUpload(identity: Identity, fileId: string): Promis
   });
   if (!file) throw notFound("That upload");
 
-  const stored = await describeObject(incoming(file.storageKey));
-  if (!stored) throw new AppError("invalid", "The file did not finish uploading. Try again.");
+  const storedBytes = await objectSize(incoming(file.storageKey));
 
   let problem: string | undefined;
   let sha256: string | undefined;
-  if (stored.sizeBytes !== file.sizeBytes) problem = "The uploaded file is not the expected size.";
+  if (storedBytes !== file.sizeBytes) problem = "The uploaded file is not the expected size.";
   else {
     const bytes = await readObject(incoming(file.storageKey));
     const expected = signatures[file.mimeType as FileType];

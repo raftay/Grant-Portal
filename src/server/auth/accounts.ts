@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import type { Tx } from "@/db/client";
 import { withSystem } from "@/db/system";
@@ -26,15 +27,14 @@ async function logEvent(tx: Tx, event: string, userId: string): Promise<void> {
   await tx.execute(sql`select app.log_event(${event}, 'users', ${userId})`);
 }
 
-export async function sendInvite(userId: string): Promise<boolean> {
+export async function sendInvite(userId: string): Promise<void> {
   const invite = await withSystem(async (tx) => {
     const [user] = await tx.select().from(users).where(and(eq(users.id, userId), eq(users.status, "invited"))).for("update");
     if (!user) throw new AppError("conflict", "That person has already accepted or is deactivated.");
     return { user, token: await issueToken(tx, userId, "invite") };
   });
   const link = `${env().APP_URL}/accept-invite/${invite.token}`;
-  const { sent } = await deliver({ kind: "invite", to: invite.user.email, ...inviteEmail(invite.user.name, link) });
-  return sent;
+  await deliver({ kind: "invite", idempotencyKey: randomUUID(), to: invite.user.email, ...inviteEmail(invite.user.name, link) });
 }
 
 export async function acceptInvite(input: z.input<typeof acceptInviteInput>): Promise<void> {
@@ -66,7 +66,7 @@ export async function requestPasswordReset(input: string): Promise<void> {
   });
   if (!reset) return;
   const link = `${env().APP_URL}/reset-password/${reset.token}`;
-  await deliver({ kind: "password_reset", to: reset.user.email, ...passwordResetEmail(reset.user.name, link) });
+  await deliver({ kind: "password_reset", idempotencyKey: randomUUID(), to: reset.user.email, ...passwordResetEmail(reset.user.name, link) });
 }
 
 export async function resetPassword(input: z.input<typeof resetPasswordInput>): Promise<void> {

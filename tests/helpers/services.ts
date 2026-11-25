@@ -4,13 +4,13 @@ import { Client, type QueryResultRow } from "pg";
 import { adminUrl, templateDatabase, urlFor } from "./config";
 
 const storage = {
-  R2_ENDPOINT: process.env.TEST_STORAGE_ENDPOINT ?? "http://127.0.0.1:57070",
+  R2_ENDPOINT: "http://127.0.0.1:57070",
   R2_BUCKET: `test-${randomUUID().slice(0, 8)}`,
   R2_ACCESS_KEY_ID: "local-access",
   R2_SECRET_ACCESS_KEY: "local-secret-key",
 };
 
-export async function prepareServices(): Promise<{
+export async function prepareServices(overrides: Record<string, string> = {}): Promise<{
   query: <T extends QueryResultRow>(text: string, values?: unknown[]) => Promise<T[]>;
   close: () => Promise<void>;
 }> {
@@ -24,8 +24,11 @@ export async function prepareServices(): Promise<{
     AUTH_SECRET: "test-secret-test-secret-test-secret-0",
     AUTH_TRUST_HOST: "true",
     APP_URL: "https://portal.example.org",
+    CRON_SECRET: "test-cron-secret-test-cron-secret-00",
+    ANTHROPIC_API_KEY: "test-key",
     EMAIL_MODE: "outbox",
     EMAIL_FROM: "Portal <portal@example.org>",
+    ...overrides,
   });
   const s3 = new S3Client({
     region: "auto",

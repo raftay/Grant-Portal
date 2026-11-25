@@ -28,3 +28,30 @@ export const signInEmail = (link: string): EmailContent => ({
   subject: "Your Grant Portal sign-in link",
   html: layout("Sign in to Grant Portal", "This link works once and lasts 15 minutes. If you did not ask for it, ignore this email.", link, "Sign in"),
 });
+
+const wording = {
+  doc_expiry: { "30d": "expires on", overdue: "expired on" },
+  doc_review: { "30d": "is due for review on", overdue: "was due for review on" },
+  deadline: { reminder: "is due on", overdue: "was due on" },
+} as const;
+
+type AlertDetails = {
+  kind: keyof typeof wording;
+  milestone: "30d" | "reminder" | "overdue";
+  title: string;
+  grantName: string | null;
+  dueOn: string;
+  recipientName: string;
+  link: string;
+};
+
+export function alertEmail(alert: AlertDetails): EmailContent {
+  const phrase = (wording[alert.kind] as Partial<Record<AlertDetails["milestone"], string>>)[alert.milestone];
+  if (!phrase) throw new Error(`No wording for ${alert.kind} at ${alert.milestone}`);
+  const day = new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(new Date(`${alert.dueOn}T00:00:00Z`));
+  const subject = alert.grantName ? `${alert.title} (${alert.grantName})` : alert.title;
+  return {
+    subject: `${alert.milestone === "overdue" ? "Overdue" : "Reminder"}: ${subject.replace(/[\r\n]+/g, " ")}`,
+    html: layout(`Hello, ${alert.recipientName}`, `${subject} ${phrase} ${day}.`, alert.link, "Open Grant Portal"),
+  };
+}

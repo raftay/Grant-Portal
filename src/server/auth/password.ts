@@ -17,7 +17,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const [scheme, N, r, p, salt, key] = stored.split("$");
-  if (scheme !== "scrypt" || !N || !r || !p || !salt || !key) return false;
+  if (scheme !== "scrypt" || !N || !r || !p || !salt || !key) throw new Error("The stored password hash is malformed");
   const expected = Buffer.from(key, "base64");
   const actual = await derive(password, Buffer.from(salt, "base64"), { N: Number(N), r: Number(r), p: Number(p), maxmem: cost.maxmem });
   return expected.length === actual.length && timingSafeEqual(expected, actual);

@@ -1,12 +1,16 @@
 # Backend, Phase 1
 
-Built so far: accounts and sign-in, email, files, organisation, documents. Next: grants, deadlines, alerts, AI.
+Complete for Phase 1. Screens and the server actions that call these services come next.
 
 ## Request pattern
 
 Page, action or route handler → `requireUser()` → service function → `asMember`, `asWriter` or `asAdmin` → one transaction as `app_user`.
 
 Services validate their own input with Zod and throw `AppError` with a code (`forbidden`, `not_found`, `invalid`, `conflict`, `throttled`, `unavailable`) and a message fit to show. Database refusals are translated in `src/server/errors.ts`. The role check in a service gives a clear message; Row Level Security is what refuses the write.
+
+## Errors
+
+There are no fallbacks, retries or backup paths. A failing function throws. Where a failure must leave a trace (an email, an AI reading), it is recorded and then rethrown. Required configuration and rows are never defaulted.
 
 Only `src/server/auth`, `email` and `jobs` may use the `app_system` connection. ESLint enforces it.
 
@@ -39,6 +43,38 @@ Only the uploader can finish an upload or attach the file to a document. Payroll
 | `users` | `listUsers`, `listOwners`, `inviteUser`, `resendInvite`, `changeRole`, `setPayrollAccess`, `deactivateUser`, `reactivateUser` |
 | `organization` | `getOrganization`, `saveOrganization` |
 | `files` | `createUpload`, `finalizeUpload`, `openFile` |
+| `grants` | `listGrants`, `getGrant`, `createGrant`, `updateGrant`, and add, update and remove for contacts and links |
+| `deadlines` | `listDeadlines`, `createDeadline`, `updateDeadline` |
+| `overview` | `listAttention`, `getSummary`, `listActivity`; admins: `listAudit`, `listAccessChanges`, `listEmails` |
+| `alerts` | `runAlertsNow` (admins) |
+| `ai` | `readDocumentDates`, `readContract`, `getExtraction`, `confirmDocumentDates`, `confirmContract` |
 | `documents` | `createDocument`, `replaceDocumentFile`, `updateDocument`, `archiveDocument`, `listDocuments`, `getDocument` |
 
 A document is expired or overdue from the day after its date, and due soon from 30 days before it, in the organisation's time zone.
+
+Spent and remaining are returned as "not available until Phase 2", never as zero.
+
+## Daily alerts
+
+Vercel Cron calls `/api/cron/daily` once a day with `CRON_SECRET`. Admins can also run it by hand.
+
+| Item | Emails to the owner |
+|---|---|
+| Document expiry or review | Once from 30 days before, once when overdue |
+| Deadline | Once from its own `reminder_days` before, once when overdue |
+
+- Each email has a unique key of item, date, step and recipient. Reruns and overlapping runs do not repeat it, and changing the date alerts again.
+- A late-added item or a missed day still alerts, because the test is "inside the window and not yet sent".
+- Items without an active owner get no email. They still appear under Needs attention.
+- If one email fails the run stops with an error. That alert and those after it stay unsent and are picked up by the next run.
+- Uploads left unfinished for a day are marked failed and removed.
+
+## AI reading
+
+`claude-haiku-5-5` reads a PDF, PNG or JPEG and returns a fixed structure: a value, a quote and a page for each field. It has no tools, and only the document and the task are sent.
+
+1. `readDocumentDates` or `readContract` stores pending proposals. Nothing else is saved.
+2. A person edits the form, ticks "reviewed" and confirms.
+3. The confirm function saves the records and marks each proposal accepted, edited or rejected, in one transaction. It works once.
+
+Errors, refusals, cut-off answers, invalid dates or amounts, and documents over 100,000 tokens throw and are recorded as failed. The manual forms do not depend on AI, so they work regardless. Limits: 20 readings per person and 60 overall in 24 hours.

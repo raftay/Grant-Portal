@@ -1,16 +1,17 @@
 import { and, count, eq, gt, sql } from "drizzle-orm";
 import { withSystem } from "@/db/system";
 import { emailMessages } from "@/db/schema";
+import { one } from "@/lib/one";
 import { env } from "../env";
 import type { EmailContent } from "./templates";
 
 export type EmailKind = "invite" | "password_reset" | "sign_in_link" | "alert";
-export type Outgoing = EmailContent & { kind: EmailKind; to: string };
+export type Outgoing = EmailContent & { kind: EmailKind; to: string; idempotencyKey: string };
 
 const hourlyLimit = 3;
 
 export async function recentlySent(kind: EmailKind, to: string): Promise<boolean> {
-  const [row] = await withSystem((tx) =>
+  const rows = await withSystem((tx) =>
     tx
       .select({ n: count() })
       .from(emailMessages)
@@ -22,7 +23,7 @@ export async function recentlySent(kind: EmailKind, to: string): Promise<boolean
         ),
       ),
   );
-  return (row?.n ?? 0) >= hourlyLimit;
+  return one(rows).n >= hourlyLimit;
 }
 
 async function sendWithResend(message: Outgoing, idempotencyKey: string): Promise<string> {
@@ -38,12 +39,13 @@ async function sendWithResend(message: Outgoing, idempotencyKey: string): Promis
   });
   if (!response.ok) throw new Error(`Resend returned ${response.status}`);
   const body = (await response.json()) as { id?: string };
-  return body.id ?? "";
+  if (!body.id) throw new Error("Resend returned no message id");
+  return body.id;
 }
 
-export async function deliver(message: Outgoing): Promise<{ id: string; sent: boolean }> {
+export async function deliver(message: Outgoing): Promise<string> {
   const outbox = env().EMAIL_MODE === "outbox";
-  const [row] = await withSystem((tx) =>
+  const rows = await withSystem((tx) =>
     tx
       .insert(emailMessages)
       .values({
@@ -55,25 +57,24 @@ export async function deliver(message: Outgoing): Promise<{ id: string; sent: bo
       })
       .returning({ id: emailMessages.id }),
   );
-  const id = row!.id;
-  if (outbox) return { id, sent: true };
+  const id = one(rows).id;
+  if (outbox) return id;
   try {
-    const providerId = await sendWithResend(message, id);
+    const providerId = await sendWithResend(message, message.idempotencyKey);
     await withSystem((tx) =>
       tx
         .update(emailMessages)
         .set({ status: "sent", providerId, sentAt: new Date(), attempts: sql`${emailMessages.attempts} + 1` })
         .where(eq(emailMessages.id, id)),
     );
-    return { id, sent: true };
+    return id;
   } catch (error) {
-    const reason = error instanceof Error ? error.message : "Unknown error";
     await withSystem((tx) =>
       tx
         .update(emailMessages)
-        .set({ status: "failed", error: reason.slice(0, 500), attempts: sql`${emailMessages.attempts} + 1` })
+        .set({ status: "failed", error: String(error).slice(0, 500), attempts: sql`${emailMessages.attempts} + 1` })
         .where(eq(emailMessages.id, id)),
     );
-    return { id, sent: false };
+    throw error;
   }
 }

@@ -13,6 +13,7 @@ function client(): S3Client {
     endpoint: env().R2_ENDPOINT,
     forcePathStyle: true,
     credentials: { accessKeyId: env().R2_ACCESS_KEY_ID, secretAccessKey: env().R2_SECRET_ACCESS_KEY },
+    maxAttempts: 1,
     requestChecksumCalculation: "WHEN_REQUIRED",
     responseChecksumValidation: "WHEN_REQUIRED",
   });
@@ -43,15 +44,10 @@ export function signDownload(key: string, disposition: string, mimeType: string)
   );
 }
 
-export async function describeObject(key: string): Promise<{ sizeBytes: number; mimeType: string } | undefined> {
-  try {
-    const head = await client().send(new HeadObjectCommand({ Bucket: bucket(), Key: key }));
-    return { sizeBytes: head.ContentLength ?? 0, mimeType: head.ContentType ?? "" };
-  } catch (error) {
-    const status = (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
-    if (status === 404) return undefined;
-    throw error;
-  }
+export async function objectSize(key: string): Promise<number> {
+  const head = await client().send(new HeadObjectCommand({ Bucket: bucket(), Key: key }));
+  if (head.ContentLength === undefined) throw new Error("Storage did not report the object size");
+  return head.ContentLength;
 }
 
 export async function readObject(key: string): Promise<Uint8Array> {

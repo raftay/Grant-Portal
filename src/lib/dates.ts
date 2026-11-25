@@ -17,3 +17,16 @@ export function documentState(document: { expiresOn: string | null; reviewOn: st
   if (review !== undefined && review <= 30) return "review_due";
   return "current";
 }
+
+export type DeadlineState = "done" | "overdue" | "due_soon" | "upcoming";
+
+export function deadlineState(deadline: { status: string; dueOn: string; reminderDays: number }, today: string): DeadlineState {
+  if (deadline.status === "completed" || deadline.status === "waived") return "done";
+  const days = daysBetween(today, deadline.dueOn);
+  if (days < 0) return "overdue";
+  return days <= Math.max(30, deadline.reminderDays) ? "due_soon" : "upcoming";
+}
+
+export function addDays(day: string, days: number): string {
+  return new Date(Date.parse(`${day}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+}

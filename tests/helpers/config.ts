@@ -1,4 +1,4 @@
-const base = process.env.TEST_DATABASE_OWNER_URL ?? "postgres://owner:owner@127.0.0.1:54329/grant_portal";
+const base = "postgres://owner:owner@127.0.0.1:54329/grant_portal";
 
 function swap(user: string | null, password: string | null, name: string): string {
   const url = new URL(base);

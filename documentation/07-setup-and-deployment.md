@@ -11,6 +11,8 @@
 | `AUTH_SECRET` | Vercel | At least 32 random characters |
 | `AUTH_TRUST_HOST` | Local | `true` when not on Vercel |
 | `APP_URL` | Vercel | Base address used in emails |
+| `CRON_SECRET` | Vercel | At least 32 random characters; Vercel Cron sends it |
+| `ANTHROPIC_API_KEY` | Vercel, local | AI reading. Set a spend limit on the account |
 | `EMAIL_MODE` | Vercel | `resend` to send, `outbox` to store for the demo |
 | `EMAIL_FROM` | Vercel | Sender on a verified domain |
 | `RESEND_API_KEY` | Vercel | Required when `EMAIL_MODE` is `resend` |

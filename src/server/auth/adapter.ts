@@ -30,8 +30,9 @@ export const adapter: Adapter = {
     return null;
   },
   async updateUser({ id, emailVerified }) {
+    if (!emailVerified) throw new Error("Only email verification can be updated");
     const [row] = await withSystem((tx) =>
-      tx.update(users).set({ emailVerified: emailVerified ?? new Date() }).where(eq(users.id, id)).returning(),
+      tx.update(users).set({ emailVerified }).where(eq(users.id, id)).returning(),
     );
     const user = present(row);
     if (!user) throw new Error("User not found");

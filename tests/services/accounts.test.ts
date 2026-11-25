@@ -43,7 +43,7 @@ describe("passwords", () => {
     expect(first).not.toBe(second);
     expect(await passwords.verifyPassword(good, first)).toBe(true);
     expect(await passwords.verifyPassword(`${good}x`, first)).toBe(false);
-    expect(await passwords.verifyPassword(good, "nonsense")).toBe(false);
+    await expect(passwords.verifyPassword(good, "nonsense")).rejects.toThrow("malformed");
   });
 });
 
@@ -68,8 +68,7 @@ describe("invitations", () => {
   it("goes from invite to first sign-in, with a link that works once", async () => {
     await people.deactivateUser(admin, i.viewer);
     await people.deactivateUser(admin, i.viewerPay);
-    const { id, emailSent } = await people.inviteUser(admin, { name: "Nia", email: " NIA@Example.org ", role: "staff" });
-    expect(emailSent).toBe(true);
+    const id = await people.inviteUser(admin, { name: "Nia", email: " NIA@Example.org ", role: "staff" });
     expect(await signIn.verifySignIn("nia@example.org", good, "1.1.1.1")).toBeUndefined();
     const first = await lastLink("nia@example.org");
     await people.resendInvite(admin, id);
@@ -91,7 +90,7 @@ describe("invitations", () => {
   });
 
   it("does not let an invite link revive a deactivated person", async () => {
-    const { id } = await people.inviteUser(admin, { name: "Gone", email: "gone@example.org", role: "staff" });
+    const id = await people.inviteUser(admin, { name: "Gone", email: "gone@example.org", role: "staff" });
     const token = await lastLink("gone@example.org");
     await people.deactivateUser(admin, id);
     await expect(accounts.acceptInvite({ token, name: "Gone", password: good })).rejects.toMatchObject({ code: "invalid" });

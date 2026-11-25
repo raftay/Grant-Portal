@@ -44,7 +44,7 @@ flowchart LR
   A -->|vercel deploy --prod| P
 ```
 
-Status: the database, sign-in, email, file storage, and the user, organisation and document services exist. Grants, deadlines, alerts, AI and all screens are designed but not built yet.
+Status: the database and the Phase 1 backend exist. Screens are designed but not built yet.
 
 ## Why GitHub Pages is not the host
 
@@ -91,7 +91,7 @@ Identity uses `set_config(..., true)`, which lasts for one transaction, so it is
 | Database | Neon Postgres, Drizzle, `pg` | Built; Neon project pending |
 | Sign-in | Auth.js, pinned to 5.0.0-beta.32 | Built |
 | Files | Cloudflare R2 | Built; tested on an S3-compatible server, R2 account pending |
-| Schedule | Vercel Cron | Pending |
+| Schedule | Vercel Cron | Built; route tested locally |
 | Email | Resend | Built; only outbox mode has been run |
-| AI | Anthropic, `claude-haiku-5-5` | Pending |
+| AI | Anthropic, `claude-haiku-5-5` | Built; tested with the real SDK against a fake server, no real readings yet |
 | Spreadsheets | SheetJS | Phase 2 |

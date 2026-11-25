@@ -2,6 +2,7 @@ import { asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { users } from "@/db/schema";
 import { inviteInput, role as roleField } from "@/lib/validation/users";
+import { one } from "@/lib/one";
 import { sendInvite } from "../auth/accounts";
 import { notFound } from "../errors";
 import { asAdmin, asMember, type Identity } from "./identity";
@@ -34,21 +35,22 @@ export function listOwners(identity: Identity) {
   );
 }
 
-export async function inviteUser(identity: Identity, input: z.input<typeof inviteInput>): Promise<{ id: string; emailSent: boolean }> {
+export async function inviteUser(identity: Identity, input: z.input<typeof inviteInput>): Promise<string> {
   const { name, email, role } = inviteInput.parse(input);
   const id = await asAdmin(identity, async (tx) => {
     const result = await tx.execute<{ id: string }>(
       sql`insert into users (name, email, role, status) values (${name}, ${email}, ${role}, 'invited') returning id`,
     );
-    return result.rows[0]!.id;
+    return one(result.rows).id;
   });
-  return { id, emailSent: await sendInvite(id) };
+  await sendInvite(id);
+  return id;
 }
 
-export async function resendInvite(identity: Identity, userId: string): Promise<boolean> {
+export async function resendInvite(identity: Identity, userId: string): Promise<void> {
   const id = z.uuid().parse(userId);
   await asAdmin(identity, async () => undefined);
-  return sendInvite(id);
+  await sendInvite(id);
 }
 
 type Change = Partial<Pick<typeof users.$inferInsert, "role" | "status" | "canViewPayroll">>;

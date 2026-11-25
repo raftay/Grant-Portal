@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import NextAuth, { CredentialsSignin, type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
@@ -29,7 +30,8 @@ export function authConfig(): NextAuthConfig {
         async authorize(input, request) {
           const parsed = credentials.safeParse(input);
           if (!parsed.success) return null;
-          const address = request.headers.get("x-real-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+          const address = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+          if (!address) throw new Error("The host did not report a client address");
           try {
             return (await verifySignIn(parsed.data.email, parsed.data.password, address)) ?? null;
           } catch (error) {
@@ -46,7 +48,7 @@ export function authConfig(): NextAuthConfig {
         maxAge: 900,
         options: {},
         async sendVerificationRequest({ identifier, url }) {
-          await deliver({ kind: "sign_in_link", to: identifier, ...signInEmail(url) });
+          await deliver({ kind: "sign_in_link", idempotencyKey: randomUUID(), to: identifier, ...signInEmail(url) });
         },
       },
     ],
@@ -67,7 +69,8 @@ export function authConfig(): NextAuthConfig {
         return token;
       },
       session({ session, token }) {
-        return { expires: session.expires, user: { ...session.user, id: token.sub ?? "" }, sessionVersion: token.sessionVersion };
+        if (!token.sub) throw new Error("The session has no user");
+        return { expires: session.expires, user: { ...session.user, id: token.sub }, sessionVersion: token.sessionVersion };
       },
     },
     events: {

@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import { and, count, eq, gt, lt, sql } from "drizzle-orm";
 import { withSystem } from "@/db/system";
 import { loginAttempts, userCredentials, users } from "@/db/schema";
+import { one } from "@/lib/one";
 import { env } from "../env";
 import { AppError } from "../errors";
 import { burnPasswordCheck, verifyPassword } from "./password";
@@ -22,11 +23,11 @@ export async function verifySignIn(email: string, password: string, address: str
   const found = await withSystem(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(740002, hashtext(${emailHash}))`);
     const failures = async (condition: ReturnType<typeof eq>) => {
-      const [row] = await tx
+      const rows = await tx
         .select({ n: count() })
         .from(loginAttempts)
         .where(and(condition, eq(loginAttempts.succeeded, false), gt(loginAttempts.attemptedAt, since)));
-      return row?.n ?? 0;
+      return one(rows).n;
     };
     const blocked =
       (await failures(eq(loginAttempts.emailHash, emailHash))) >= maxPerEmail ||

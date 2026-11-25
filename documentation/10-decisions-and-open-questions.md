@@ -12,6 +12,9 @@
 | One reminder per deadline, set on the deadline | Matches the design; replaces a fixed series of reminders |
 | `recent_activity` view | Everyone sees activity on the home page while the full log stays with admins |
 | The design was read from a small public preview | Detail is approximate until full-size screens are available |
+| No fallbacks, retries or backup paths; failures throw | Project rule |
+| Items without an active owner get no email | The scope names the owner as the recipient; they still appear under Needs attention |
+| AI reading of a contract works on an existing grant | Matches the design; pre-filling a new grant was dropped |
 | A small Auth.js adapter instead of `@auth/drizzle-adapter` | The packaged one updates the user's id column, which `app_system` is not allowed to do. Ours also refuses to create accounts. The `accounts` table stays, unused |
 | Uploads land under `incoming/` and are copied after checking | An upload link stays valid for five minutes and could otherwise replace a checked file |
 | TypeScript 6.0 and ESLint 9 | The lint plugins do not support TypeScript 7 |

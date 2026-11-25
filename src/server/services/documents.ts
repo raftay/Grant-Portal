@@ -3,10 +3,12 @@ import { z } from "zod";
 import type { Tx } from "@/db/client";
 import { documents, documentVersions, files, users } from "@/db/schema";
 import { documentState } from "@/lib/dates";
+import { one } from "@/lib/one";
 import { createDocumentInput, documentDetails } from "@/lib/validation/documents";
 import { AppError, notFound } from "../errors";
 import { asMember, asWriter, type Identity } from "./identity";
 import { organizationToday } from "./organization";
+import { requireActiveOwner } from "./owners";
 
 async function requireReadyFile(tx: Tx, fileId: string, userId: string): Promise<void> {
   const [file] = await tx
@@ -16,12 +18,6 @@ async function requireReadyFile(tx: Tx, fileId: string, userId: string): Promise
       and(eq(files.id, fileId), eq(files.status, "ready"), eq(files.sensitivity, "general"), eq(files.uploadedBy, userId)),
     );
   if (!file) throw new AppError("invalid", "Upload the file before saving the document.");
-}
-
-async function requireActiveOwner(tx: Tx, ownerId: string | null): Promise<void> {
-  if (!ownerId) return;
-  const [owner] = await tx.select({ id: users.id }).from(users).where(and(eq(users.id, ownerId), eq(users.status, "active")));
-  if (!owner) throw new AppError("invalid", "Choose an active person as the owner.");
 }
 
 export function createDocument(identity: Identity, input: z.input<typeof createDocumentInput>): Promise<string> {
@@ -46,11 +42,11 @@ export function replaceDocumentFile(identity: Identity, documentId: string, file
       .for("update");
     if (!document) throw notFound("That document");
     await requireReadyFile(tx, file, identity.userId);
-    const [latest] = await tx
-      .select({ n: sql<number>`coalesce(max(${documentVersions.versionNo}), 0)::int` })
+    const latest = await tx
+      .select({ n: sql<number>`max(${documentVersions.versionNo})::int` })
       .from(documentVersions)
       .where(eq(documentVersions.documentId, id));
-    const versionNo = (latest?.n ?? 0) + 1;
+    const versionNo = one(latest).n + 1;
     await tx.insert(documentVersions).values({ documentId: id, versionNo, fileId: file });
     return versionNo;
   });
